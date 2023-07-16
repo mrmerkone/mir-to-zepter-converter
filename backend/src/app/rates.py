@@ -5,7 +5,7 @@ from attr import dataclass
 from bs4 import BeautifulSoup
 
 
-ZEPTER_CURRENCY_RATES_URL = "https://www.zepterbank.by/personal/services/currency/card/"
+ZEPTER_CURRENCY_RATES_URL = "https://zepterbank.by/personal/services/currency/card/"
 MIR_CURRENCY_RATES_URL = "https://mironline.ru/support/list/kursy_mir/"
 
 
@@ -19,7 +19,7 @@ class ZepterRates:
     RUB_BUY: float
 
 
-async def get_rates_html(url: str) -> str:
+async def get_html(url: str) -> str:
     async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, ssl=False) as response:
             if response.status == 200:
@@ -28,7 +28,7 @@ async def get_rates_html(url: str) -> str:
 
 
 async def get_zepter_rates() -> ZepterRates:
-    html = await get_rates_html(ZEPTER_CURRENCY_RATES_URL)
+    html = await get_html(ZEPTER_CURRENCY_RATES_URL)
     soup = BeautifulSoup(html, "html.parser")
 
     rates_table = soup.find("table", attrs={"class": "rate rate_long_name"})
@@ -64,7 +64,7 @@ class MirRates:
 
 
 async def get_mir_rates() -> MirRates:
-    html = await get_rates_html(MIR_CURRENCY_RATES_URL)
+    html = await get_html(MIR_CURRENCY_RATES_URL)
     soup = BeautifulSoup(html, "html.parser")
 
     rates_table = soup.find(
