@@ -101,7 +101,7 @@ html, body {
     position: absolute;
     top: 99%;
     left: 50%;
-    font-size: 0.8em;
+    font-size: 0.6em;
     transform: translateY(-50%) translateX(-50%);
 }
 </style>
