@@ -3,12 +3,12 @@ from aiohttp import web
 from app.rates import get_zepter_rates, get_mir_rates
 
 
-async def index(_request: web.Request) -> web.Response:
-    return web.FileResponse('./dist/index.html')
+async def index(_request: web.Request) -> web.StreamResponse:
+    return web.FileResponse("./dist/index.html")
 
 
-async def favicon(_request: web.Request) -> web.Response:
-    return web.FileResponse('./dist/favicon.ico')
+async def favicon(_request: web.Request) -> web.StreamResponse:
+    return web.FileResponse("./dist/favicon.ico")
 
 
 async def rates(_request: web.Request) -> web.Response:
@@ -23,17 +23,19 @@ async def rates(_request: web.Request) -> web.Response:
             "full": {
                 "USD": round(zepter_rates.USD_SELL / zepter_rates.RUB_BUY, ndigits=2),
                 "EUR": round(zepter_rates.EUR_SELL / zepter_rates.RUB_BUY, ndigits=2),
-            }
+            },
         }
     )
 
 
 def get_app() -> web.Application:
     app = web.Application()
-    app.add_routes([
-        web.get("/", index),
-        web.get("/api/rates", rates),
-        web.get("/favicon.ico", favicon),
-        web.static("/assets", "dist/assets")
-    ])
+    app.add_routes(
+        [
+            web.get("/", index),
+            web.get("/api/rates", rates),
+            web.get("/favicon.ico", favicon),
+            web.static("/assets", "dist/assets"),
+        ]
+    )
     return app
