@@ -16,7 +16,7 @@ async def rates(_request: web.Request) -> web.Response:
     mir_rates = await get_mir_rates()
     return web.json_response(
         data={
-            "dicounted": {
+            "discounted": {
                 "USD": round(zepter_rates.USD_SELL * mir_rates.BYN_BUY, ndigits=2),
                 "EUR": round(zepter_rates.EUR_SELL * mir_rates.BYN_BUY, ndigits=2),
             },

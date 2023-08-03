@@ -6,18 +6,18 @@
           <div>
             <div class="form-check form-check-inline">
               <input class="form-check-input" @change="calculate" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="USD" v-model="currency" checked>
-              <label class="form-check-label" for="inlineRadio1">$ по {{dicounted.USD}}</label>
+              <label class="form-check-label" for="inlineRadio1">$ по {{discounted.USD}}</label>
             </div>
             <div class="form-check form-check-inline">
               <input class="form-check-input" @change="calculate" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="EUR" v-model="currency">
-              <label class="form-check-label" for="inlineRadio2">€ по {{dicounted.EUR}}</label>
+              <label class="form-check-label" for="inlineRadio2">€ по {{discounted.EUR}}</label>
             </div>
           </div>
           <div>
-            <input v-model="amount" @input="calculate" @keypress="isNumber($event)" class="form-control" type="text" placeholder="Сколько нужно в валюте" aria-label="default input example">
+            <input v-model="requiredAmount" @input="calculate" @keypress="isNumber($event)" class="form-control" type="text" placeholder="Сколько нужно в валюте">
           </div>
           <div class="card-text" v-if="transferAmount">
-            <p>Нужно перевести <b>{{ transferAmount }} руб.</b> → <b>{{this.instantDepositingAmount}}{{this.currencySign}}</b> придет сразу + <b>{{ this.deferredDepositingAmount }}{{this.currencySign}}</b> через пару дней</p>
+            <p><b>{{transferAmount}} руб.</b> нужно перевести<br> <b>{{this.instantDepositingAmount}} {{this.currencySign}}</b> придет сразу <br> <b>{{this.deferredDepositingAmount}} {{this.currencySign}}</b> через пару дней</p>
           </div>
         </form>
       </div>
@@ -40,10 +40,10 @@ const CURRENCY_SIGN_MAP = {
 export default {
   data() {
     return {
-      dicounted: {"EUR": "???", "USD": "???"},
+      discounted: {"EUR": "???", "USD": "???"},
       full: {"EUR": "???", "USD": "???"},
       currency: "USD",
-      amount: "",
+      requiredAmount: "",
       transferAmount: "",
       instantDepositingAmount: "",
       deferredDepositingAmount: "",
@@ -65,10 +65,10 @@ export default {
       }
     },
     calculate: function () {
-      let amount = parseFloat(this.amount);
-      this.transferAmount = Math.round((amount * this.dicounted[this.currency]) * 100) / 100;
+      let requiredAmount = parseFloat(this.requiredAmount);
+      this.transferAmount = Math.round((requiredAmount * this.discounted[this.currency]) * 100) / 100;
       this.instantDepositingAmount = Math.round((this.transferAmount / this.full[this.currency]) * 100) / 100;
-      this.deferredDepositingAmount = Math.round((amount - this.instantDepositingAmount) * 100) / 100;
+      this.deferredDepositingAmount = Math.round((requiredAmount - this.instantDepositingAmount) * 100) / 100;
     }
   },
   mounted() {
@@ -76,7 +76,7 @@ export default {
       .get('api/rates')
       .then(
         response => {
-          this.dicounted = response.data.dicounted;
+          this.discounted = response.data.discounted;
           this.full = response.data.full;
         }
       );
