@@ -1,4 +1,5 @@
 import asyncio
+import json
 
 import aiohttp
 from attr import dataclass
@@ -6,7 +7,7 @@ from bs4 import BeautifulSoup
 
 
 ZEPTER_CURRENCY_RATES_URL = "https://zepterbank.by/personal/services/currency/card/"
-MIR_CURRENCY_RATES_URL = "https://mironline.ru/support/list/kursy_mir/"
+MIR_CURRENCY_RATES_URL = "https://api-user.privetmir.ru/backend/api/v2/currencies/rates"
 
 
 @dataclass(slots=True, frozen=True)
@@ -19,7 +20,7 @@ class ZepterRates:
     RUB_BUY: float
 
 
-async def get_html(url: str) -> str:
+async def get_url_content(url: str) -> str:
     async with aiohttp.ClientSession(trust_env=True) as session:
         async with session.get(url, ssl=False) as response:
             if response.status == 200:
@@ -28,7 +29,7 @@ async def get_html(url: str) -> str:
 
 
 async def get_zepter_rates() -> ZepterRates:
-    html = await get_html(ZEPTER_CURRENCY_RATES_URL)
+    html = await get_url_content(ZEPTER_CURRENCY_RATES_URL)
     soup = BeautifulSoup(html, "html.parser")
 
     rates_table = soup.find("table", attrs={"class": "rate rate_long_name"})
@@ -49,43 +50,21 @@ async def get_zepter_rates() -> ZepterRates:
     return ZepterRates(**kwargs)
 
 
-MIR_CURRENCY_NAME_MAP = {
-    "Армянский драм": "AMD",
-    "Белорусский рубль": "BYN",
-    "Казахстанский тенге": "KZT",
-}
-
-
 @dataclass(slots=True, frozen=True)
 class MirRates:
-    AMD_BUY: float
     BYN_BUY: float
-    KZT_BUY: float
 
 
 async def get_mir_rates() -> MirRates:
-    html = await get_html(MIR_CURRENCY_RATES_URL)
-    soup = BeautifulSoup(html, "html.parser")
+    data = await get_url_content(MIR_CURRENCY_RATES_URL)
 
-    rates_table = soup.find(
-        "table",
-        attrs={"cellpadding": "0", "cellspacing": "0", "style": "height: 500px;"},
-    )
-    rates_table_body = rates_table.find("tbody")
-    rates_table_rows = rates_table_body.find_all("tr")
+    rates = json.loads(data)
 
-    kwargs = {}
+    for rate in rates["content"]:
+        if rate["currency"]["strcode"] == "BYN":
+            return MirRates(BYN_BUY=rate["valueBuy"])
 
-    for row in rates_table_rows:
-        cols = row.find_all("td")
-        cols = [ele.text.strip() for ele in cols]
-        if cols:
-            currency_name, buy = cols
-            if currency_name in MIR_CURRENCY_NAME_MAP:
-                currency = MIR_CURRENCY_NAME_MAP[currency_name]
-                kwargs[f"{currency}_BUY"] = float(buy.replace(",", "."))
-
-    return MirRates(**kwargs)
+    return MirRates(BYN_BUY=99999999)
 
 
 async def main():
